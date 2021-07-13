@@ -1,0 +1,81 @@
+<?php
+require('top.inc.php');
+isAdmin();
+$categories='';
+$msg='';
+$sub_categories='';
+if(isset($_GET['id']) && $_GET['id']!=''){
+	$id=get_safe_value($con,$_GET['id']);
+	$res=mysqli_query($con,"select * from sub_categories where id='$id'");
+	$check=mysqli_num_rows($res);
+	if($check>0){
+		$row=mysqli_fetch_assoc($res);
+		$sub_categories=$row['sub_categories'];
+		$categories=$row['categories_id'];
+	}else{
+		header('location:manage_sub_categories.php');
+		die();
+	}
+}
+
+if(isset($_POST['submit'])){
+	$categories=get_safe_value($con,$_POST['categories_id']);
+	$sub_categories=get_safe_value($con,$_POST['sub_categories']);
+	$res=mysqli_query($con,"select * from sub_categories where categories_id='$categories' and sub_categories='$sub_categories'");
+	$check=mysqli_num_rows($res);
+	if($check>0){
+		if(isset($_GET['id']) && $_GET['id']!=''){
+			$getData=mysqli_fetch_assoc($res);
+			if($id==$getData['id']){
+			
+			}else{
+				$msg="Sub Categories already exist";
+			}
+		}else{
+			$msg="Sub Categories already exist";
+		}
+	}
+	
+	if($msg==''){
+		if(isset($_GET['id']) && $_GET['id']!=''){
+			mysqli_query($con,"update sub_categories set categories_id='$categories',sub_categories='$sub_categories' where id='$id'");
+		}else{
+			
+			mysqli_query($con,"insert into sub_categories(categories_id,sub_categories,status) values('$categories','$sub_categories','1')");
+		}
+		header('location:manage_sub_categories.php');
+		die();
+	}
+}
+?>
+
+                        <form method="post">
+							<div >
+							   <div >
+									<label for="categories" >Categories</label>
+									<select name="categories_id" required >
+										<option value="">Select Categories</option>
+										<?php
+										$res=mysqli_query($con,"select * from categories where status='1'");
+										while($row=mysqli_fetch_assoc($res)){
+											if($row['id']==$categories){
+												echo "<option value=".$row['id']." selected>".$row['categories']."</option>";
+											}else{
+												echo "<option value=".$row['id'].">".$row['categories']."</option>";
+											}
+										}
+										?>
+									</select>
+								</div>
+								<div >
+									<label for="categories" >Sub Categories</label>
+									<input type="text" name="sub_categories" placeholder="Enter sub categories"  required value="<?php echo $sub_categories?>">
+								</div>
+							   <input type="submit" name="submit">
+							   <div class="danger"><?php echo $msg?></div>
+							</div>
+						</form>
+               
+<?php
+require('footer.inc.php');
+?>
